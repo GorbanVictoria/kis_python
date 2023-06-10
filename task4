@@ -1,0 +1,58 @@
+import re
+def main(s):
+ ans = {}
+ s = s.replace("\n", " ")
+ d = re.findall(r'var(.*?)[.]', s)
+ # print(d)
+ for i in d:
+ key, value = i.split(':')
+ key = key.replace(' ', '')
+ key = key.replace('@', '')
+ key = key.replace('\"', '')
+ key = key.replace('\'', '')
+ value = value.replace('#', '')
+ value = value.replace('(', '')
+ value = value.replace(')', '')
+ value = value.replace(' ', '')
+ value = value.replace('@', '')
+ value = value.replace('\"', '')
+ value = value.replace('\'', '')
+ ans[key] = value
+ # ans.append((key, value))
+ return ans
+ 
+ 
+ def main(x):
+ x = x.replace('.do', '')\
+ .replace('.end', '')\
+ .replace('<:', '')\
+ .replace('variable', '')\
+ .replace('list', '')\
+ .replace('(', '')\
+ .replace(')', '')\
+ .replace('\n', '')\
+ .replace(' ', '')
+ x_parts = x.split(';:>')
+ x_parts.pop(-1)
+ x_parts1 = [i.split('<-') for i in x_parts]
+ result = []
+ for i in x_parts1:
+ result.append((i[0], i[1].split(';')))
+ return result
+ 
+ def main(x):
+ x = x.replace('(', '')\
+ .replace(')', '')\
+ .replace('var', '')\
+ .replace('\n', '')\
+ .replace(' ', '')\
+ .replace('|', '')
+ x_parts = x.split(';,')
+ x_parts.pop(-1)
+ x_parts1 = [i.split('::=') for i in x_parts]
+ result = {}
+ for i in x_parts1:
+ result[i[0]] = i[1]
+ return result
+ 
+ 
