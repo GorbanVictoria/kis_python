@@ -1,1 +1,199 @@
+from struct import unpack_from, calcsize
+from typing import Any, Callable
 
+
+class Types:
+    char = 'c'
+    int8 = 'b'
+    uint8 = 'B'
+    int16 = 'h'
+    uint16 = 'H'
+    int32 = 'i'
+    uint32 = 'I'
+    int64 = 'q'
+    uint64 = 'Q'
+    float = 'f'
+    double = 'd'
+
+
+class BinaryReader:
+    def __init__(self, stream, offset, order=">"):
+        self.stream = stream
+        self.offset = offset
+        self.order = order
+
+    def jump(self, offset):
+        reader = BinaryReader(self.stream, offset, self.order)
+        return reader
+
+    def read(self, pattern):
+        size = calcsize(pattern)
+        data = unpack_from(self.order + pattern, self.stream, self.offset)
+        self.offset += size
+        return data[0]
+
+
+def read_e(reader):
+    
+    e1 = reader.read(Types.uint8)
+    e2 = reader.read(Types.uint16)
+    e3_size = reader.read(Types.uint16)
+    e3_offset = reader.read(Types.uint16)
+    e3_reader = reader.jump(e3_offset)
+    e3 = [e3_reader.read(Types.float) for _ in range(e3_size)]
+    
+    return dict(E1=e1, E2=e2, E3=e3)
+
+
+def read_d(reader):
+    d1 = reader.read(Types.double)
+    d2 = reader.read(Types.int32)
+    d3 = reader.read(Types.int8)
+    return dict(D1=d1, D2=d2, D3=d3)
+
+
+def read_c(reader):
+    c1 = b''.join(
+      [reader.read(Types.char) for _ in range(4)]).decode('Windows-1251')
+    
+    c2_size = reader.read(Types.uint32)
+    c2_offset = reader.read(Types.uint16)
+    c2_reader = reader.jump(c2_offset)
+    c2 = [c2_reader.read(Types.float) for _ in range(c2_size)]
+    
+    return dict(C1=c1, C2=c2)
+
+
+def read_b(reader):
+    b1 = reader.read(Types.int32)
+    b2 = reader.read(Types.uint8)
+    c_offset = reader.read(Types.uint32)
+    c_reader = reader.jump(c_offset)
+    b3 = read_c(c_reader)
+    # b4_size = reader.read(Types.uint32)
+    # b4_offset = reader.read(Types.uint16)
+    # b4_reader = reader.jump(b4_offset)
+    # b4 = [b4_reader.read(Types.uint16) for _ in range(b4_size)]
+    b4 = reader.read(Types.double)
+    return dict(B1=b1, B2=b2, B3=b3, B4=b4)
+
+
+def read_a(reader):
+    a1 = read_b(reader)
+    a2 = [read_d(reader) for _ in range(7)]
+    a3 = reader.read(Types.uint16)
+    a4 = reader.read(Types.uint32)
+    a5 = reader.read(Types.int8)
+    a6 = reader.read(Types.int64)
+    a7 = read_e(reader)
+    return dict(A1=a1, A2=a2, A3=a3, A4=a4, A5=a5, A6=a6, A7=a7)
+
+
+def main(stream):
+  # signature = b'0xa6\0x4c\0x51\0x4d'
+  # start_index = stream.find(signature) + len(signature)
+  return read_a(BinaryReader(stream, 4))
+   
+ 
+print(main(b'\xa6LQM~\xbd5\xdd\xad\x00\x00\x00\x96?\xb483\xc0\xb0\xdf\xb0?\xed\xe6'
+ b'H\xc9m\xd7rcA\x8a~F\xbf\xc5cBe\xc9\xec0\x18a\x91!U?\xe2(\xb7P\xd0Y\x9as'
+ b'\xfccm\x00\xbf\xe1\x89\xb4\xd3\xe0kV\xe8$\xd6\xb05\xbf\xdf\x99\xae\xab9\xac'
+ b'\xb4x\x8f?\x8f\x9a?\xe2\x93{\xb6\xea8\x02\x1b\x0eD\xf2\x88?\x9b\xce\x8b\xcb'
+ b'S\xf7\xc0\x0e \xd4E\xa3\x1e\x83!\x026\xe4\x00p\xa5\x94\xbeF9\xdf\xe7\xcc'
+ b']\xb3\x00\x02\x00\xa0\xbb\xeeA\xd3?\x17)6>\xb3\xc5\xa5<\x13\x0fghuyc\x00\x00'
+ b'\x00\x04\x00\x86\xbe\x80O\xd1>\xfe\xadV'))
+ 
+ 
+ from struct import unpack_from, calcsize
+from typing import Any, Callable
+
+
+class Types:
+    char = 'c'
+    int8 = 'b'
+    uint8 = 'B'
+    int16 = 'h'
+    uint16 = 'H'
+    int32 = 'i'
+    uint32 = 'I'
+    int64 = 'q'
+    uint64 = 'Q'
+    float = 'f'
+    double = 'd'
+
+
+class BinaryReader:
+    def __init__(self, stream, offset, order=">"):
+        self.stream = stream
+        self.offset = offset
+        self.order = order
+
+    def jump(self, offset):
+        reader = BinaryReader(self.stream, offset, self.order)
+        return reader
+
+    def read(self, pattern):
+        size = calcsize(pattern)
+        data = unpack_from(self.order + pattern, self.stream, self.offset)
+        self.offset += size
+        return data[0]
+
+
+def read_e(reader):
+    e1 = reader.read(Types.uint8)
+    e2_size = reader.read(Types.uint32)
+    e2_offset = reader.read(Types.uint16)
+    e2_reader = reader.jump(e2_offset)
+    e2 = [e2_reader.read(Types.int8) for _ in range(e2_size)]
+    e3 = reader.read(Types.uint32)
+    e4 = reader.read(Types.uint8)
+    e5 = reader.read(Types.uint8)
+    e6 = reader.read(Types.int64)
+    e7 = reader.read(Types.int32)
+    e8 = reader.read(Types.uint64)
+    return dict(E1=e1, E2=e2, E3=e3, E4=e4, E5=e5, E6=e6, E7=e7, E8=e8)
+
+
+def read_d(reader):
+    d1 = reader.read(Types.float)
+    d2 = reader.read(Types.uint16)
+    return dict(D1=d1, D2=d2)
+
+
+def read_c(reader):
+    c1 = reader.read(Types.int8)
+    c2 = reader.read(Types.uint32)
+    c3 = b''.join([reader.read(Types.char) for _ in range(5)]).decode('utf-8')
+    c4 = reader.read(Types.double)
+    c5 = reader.read(Types.int16)
+    return dict(C1=c1, C2=c2, C3=c3, C4=c4, C5=c5)
+
+
+def read_b(reader):
+    c_offset = reader.read(Types.uint16)
+    c_reader = reader.jump(c_offset)
+    b1 = read_c(c_reader)
+    b2 = reader.read(Types.int32)
+    b3 = [read_d(reader.jump(reader.read(Types.uint16))) for _ in range(3)]
+    b4_size = reader.read(Types.uint32)
+    b4_offset = reader.read(Types.uint16)
+    b4_reader = reader.jump(b4_offset)
+    b4 = [b4_reader.read(Types.uint16) for _ in range(b4_size)]
+    b5 = reader.read(Types.double)
+    return dict(B1=b1, B2=b2, B3=b3, B4=b4, B5=b5)
+
+
+def read_a(reader):
+    a1 = reader.read(Types.int8)
+    a2 = read_b(reader)
+    a3 = [reader.read(Types.uint8) for _ in range(7)]
+    a4 = reader.read(Types.float)
+    a5 = reader.read(Types.float)
+    a6 = reader.read(Types.int16)
+    a7 = reader.read(Types.uint64)
+    a8 = read_e(reader)
+    return dict(A1=a1, A2=a2, A3=a3, A4=a4, A5=a5, A6=a6, A7=a7, A8=a8)
+
+
+def main(stream):
+    return read_a(BinaryReader(stream, 4))
